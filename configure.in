@@ -1,0 +1,56 @@
+AC_REVISION
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(main.c)
+AM_INIT_AUTOMAKE(slocate, 2.7)
+AM_CONFIG_HEADER(config.h)
+AC_ARG_PROGRAM
+
+datadir=/var/lib/
+
+dnl Check for programs.
+
+AC_PROG_CC
+
+# Check to see if /etc/cron.daily/ dir exists so that we
+# can add the slocate.cron file to it.
+AC_MSG_CHECKING(for '/etc/cron.daily/' directory)
+AM_CONDITIONAL(CRON, test -d "/etc/cron.daily")
+
+if [ test -d "/etc/cron.daily" ] ; then
+AC_MSG_RESULT(yes)
+else
+AC_MSG_RESULT(no)
+fi
+
+# Check if we are on a FreeBSD system
+if [ test "`uname -s`" = "FreeBSD" ] ; then
+#   AC_DEFINE(__FreeBSD__)
+   datadir=/var/db/
+fi
+
+AM_CONDITIONAL(FREEBSD, test "`uname -s`" = "FreeBSD")
+
+# Check if we are on a SunOS system
+if [ test "`uname -s`" = "SunOS" ] ; then
+   AC_DEFINE(__SunOS__)
+   datadir=/var/db/
+fi
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h unistd.h fts.h)
+AM_CONDITIONAL(SL_FTS, test "$ac_cv_header_fts_h" = "no")
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_UID_T
+AC_TYPE_SIZE_T
+
+dnl Checks for library functions.
+AC_FUNC_FNMATCH
+AC_CHECK_FUNCS(getcwd regcomp strdup strerror strstr)
+AC_PROG_INSTALL
+AC_OUTPUT(Makefile)

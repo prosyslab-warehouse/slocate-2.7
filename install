@@ -1,0 +1,117 @@
+#!/bin/sh
+
+echo "This script is now obsolete..."
+
+exit
+
+SYSTEM=`uname -s`
+echo "Finding your system..."
+
+case ${SYSTEM} in
+    "Linux")
+
+       GPATH="/usr/sbin/groupadd"
+       GOPTS="slocate"
+
+       DBPATH="/var/lib/slocate"
+       UPREFIX="/usr/bin"
+		 
+		 MANPAGE="slocate.1.linux"
+
+       echo "We have a winner! SYSTEM=Linux"
+    ;;
+    "FreeBSD")
+
+       GPATH="/usr/sbin/pw"
+       GOPTS="groupadd slocate"
+		 
+       DBPATH="/var/db/slocate"
+       UPREFIX="/usr/libexec"
+		 
+		 MANPAGE="slocate.1.other"
+
+       echo "We have a winner! SYSTEM=FreeBSD"
+    ;;
+    *)
+
+   echo
+   echo "Could not find system type for groupadd."
+   echo
+   echo "Read the README.DOC file to install Secure Locate manually."
+   echo
+   exit 1
+esac
+
+user=`id -un`
+
+instdir="/usr/bin"
+echo
+echo "Copying slocate to $instdir"
+install -m 0755 slocate /usr/bin
+$GPATH $GOPTS
+
+CWD="`pwd`"
+
+cd $instdir
+echo
+echo "Changing permisions on slocate"
+
+chown $user:slocate slocate
+chmod g+s ./slocate
+
+cd $CWD
+
+echo "Making Database Directory"
+install -d -m 0750 $DBPATH
+chown $user:slocate $DBPATH
+echo "Creating Symlinks"
+
+if [ -f /usr/bin/locate ] ; then
+   rm -f /usr/bin/locate.old
+   mv /usr/bin/locate /usr/bin/locate.old
+	chmod 700 /usr/bin/locate.old
+fi
+
+ln -s /usr/bin/slocate /usr/bin/locate
+
+if [ -f $UPREFIX/updatedb ] ; then
+   rm -f $UPREFIX/updatedb.old
+   mv $UPREFIX/updatedb $UPREFIX/updatedb.old
+fi
+
+ln -s /usr/bin/slocate $UPREFIX/updatedb
+
+echo "Installing man page"
+
+if [ -d /usr/man ] ; then
+  mandir="/usr/man"
+elif [ -d /usr/share/man ] ; then
+  mandir="/usr/share/man"
+fi
+
+if [ ! -f ./locate.1.gz ] ; then
+   cp $MANPAGE slocate.1
+   gzip slocate.1 >/dev/null 2>&1
+fi
+
+if [ ! -f ./updatedb.1.gz ] ; then
+   gzip updatedb.1 >/dev/null 2>&1
+fi
+
+if [ -f $mandir/man1/locate.1.gz ] ; then
+   mv -f $mandir/man1/locate.1.gz $mandir/man1/locate.old.1.gz
+fi
+
+if [ -f $mandir/man1/locate.1.gz ] ; then
+   mv -f $mandir/man1/updatedb.1.gz $mandir/man1/updatedb.old.1.gz
+fi
+
+install -m 0644 slocate.1.gz $mandir/man1/locate.1.gz
+install -m 0644 updatedb.1.gz $mandir/man1/
+
+rm slocate.1.gz >/dev/null 2>&1
+gunzip updatedb.1.gz >/dev/null 2>&1
+
+echo
+echo "Install Complete!"
+echo

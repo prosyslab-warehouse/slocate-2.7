@@ -1,0 +1,21 @@
+Secure Locate v2.6
+------------------
+
+The Install should be pretty easy. If you have gotten this far, then I 
+assume you have unpacked the archive.
+
+Just enter the slocate-2.6 directory and type:
+
+./configure
+make
+su -c "make install"
+
+It will hopefully compile. If it doesn't you can either email me
+<klindsay@mkintraweb.com> or make a patch and send it to me. (c:
+
+UNINSTALL
+---------
+
+Enter teh slocate-2.6 directory and type:
+
+su -c "make uninstall"

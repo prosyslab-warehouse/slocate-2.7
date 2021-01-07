@@ -1,0 +1,246 @@
+                           Secure Locate v2.7
+                           ------------------
+                       Released January 24, 2003
+        Copyright (c) 1999, 2000, 2001, 2002, 2003 Kevin Lindsay
+
+Table of Contents
+-----------------
+
+ Setting up Secure Locate Manually ................................... I
+ Creating the Database ............................................... II
+ Options ............................................................. III
+ Ports ............................................................... IV
+ Credits ............................................................. V
+ Author and Bugs  .................................................... VI
+ 
+--------------------------------------------------------------------------
+ 
+I. SETTING UP SECURE LOCATE MANUALLY
+   ---------------------------------
+
+   1.   If the install script does not work, a manual setup  will have to
+      be done.  The first thing to do is copy the slocate binary to a directory
+      in your path.  Usually the directory:
+   
+      /usr/local/bin/
+   
+      will suffice.
+      
+   2.   Next you must create a group called:
+   
+      slocate
+      
+         You can do this by either editing the /etc/group file manually or use
+      a group add utility.  The following is supported by Linux:
+      
+      groupadd slocate
+
+   3.   Once the group has been created, you must now change the ownership and
+        permissions of the slocate binary.  To do this execute the following 
+        commands.
+      
+        chown root:slocate /usr/local/bin/slocate
+        chmod 2755 /usr/local/bin/slocate
+      
+   4.   To make Secure Locate more convenient to use, you can symlink 'slocate'
+        to 'locate'.
+        
+           Move the old version of locate to something else if it exists.
+           
+           ln -s /usr/local/bin/slocate /usr/local/bin/locate
+           
+   5.   To make updating the database more convenient, you may link 'slocate'
+        to 'updatedb'.  This way, just running 'updatedb' will start to index
+        your entire drive.
+        
+           ln -s /usr/local/bin/slocate /usr/local/bin/updatedb
+        
+   6.   Then all you have to do is make sure this path exits:
+   
+        /var/lib/slocate
+              
+        You can do this by executing this command:
+                              
+           mkdir -p /var/lib/slocate
+      
+        Now just give it the right ownership:
+      
+           chown root:slocate /var/lib/slocate
+      
+      
+
+II.  CREATING THE DATABASE
+     ---------------------
+     
+        When creating the database, there are a few options that you may
+     use to customize which files get indexed and how.  The database will be
+     stored in /var/lib/slocate/. The two main options are:
+     
+        -u       - Indexes every file on your system.
+        -U <dir> - Indexes every file in the directory <dir>.
+     
+     Below are some examles of different types of indexing options:
+     
+     Create an index of everyfile in every directory on your system.
+     
+        slocate -u
+        
+     Create an index of everyfile in the specified directory <dir>.
+     
+        slocate -U <dir>
+        
+     Create an index of everyfile excluding the specified files/directories,
+     /proc /dev and /tmp
+     
+        slocate -e "/proc,/dev/,/tmp" -u
+        
+     Create an index of everyfile excluding files on NFS and iso9660 type
+     file systems.
+     
+        slocate -f "NFS,iso9660" -u
+        
+     Create an index of everyfile but do not mark the database as secure.
+     This will cause slocate to NOT check file permissions before displaying
+     them to the user.  This will allow every user on the system to gain
+     knowledge of filenames that they would not normally have access to.
+     The advantage to this option is to make searching faster.
+     
+        slocate -l0 -u
+           
+         
+        If you symlinked /usr/local/bin/slocate to /usr/local/bin/updatedb, then executing
+     the updatedb command will automatically index the root filesystem starting
+     at '/'.  This will also cause the file '/etc/updatedb.conf' to be parsed.
+     This file is in the same format as the original updatedb.sh configuration
+     file.
+     
+     
+III. OPTIONS
+     -------
+     
+     -u                 - Create slocate database starting at path /.
+     
+     -U <dir>           - Create slocate database starting at path <dir>.     
+
+     -e <dir1,dir2,...> - Exclude directories from slocate database.
+     
+     -f <fstype1,...>   - Exclude files on specified file system types from 
+                          the slocate database.
+                          
+     -c                 - Force slocate to parse '/etc/updatedb.conf' when
+                          updating the database.
+     
+     -l <[01]>          - Security level. 
+                            0 turns security checks off. This will make
+                              searchs faster.                              
+                            1 turns security checks on. This is the default.
+                            
+     -q                 - Quite mode.  Error messages are suppressed.
+     
+     -n <num>           - Limit the amount of results shown to <num>.
+
+     -i                 - Does a case insensitive search.
+
+     -r <regexp>
+     --regexp=<regexp>  - Search the database using a basic POSIX regular
+                          expression.
+
+     -o <file>
+     --output=<file>    - Specfies the database to create.
+
+     -d <path>
+     --database=path    - Specfies path of database to search in.
+     
+     -h
+     --help             - Display this help.
+     
+     -v
+     --verbose          - Verbose mode. Display files when creating database.
+     
+     -V
+     --version          - Display version.
+                           
+
+IV.  PORTS
+     -----
+
+     Previous versions of Secure Locate have been known to compile on quite
+     a few different platforms. However, v2.5+ has had some major changes
+     and it may not fully work on most platforms without a bit of tweaking.
+     Listed below are the known and tested platforms that Secure Locate
+     will work on.
+     
+     If you manage to get Secure Locate to work on any additional platforms,
+     I would appreciate a patch.
+     
+     v2.0
+     ----
+     
+     Linux  (libc5, glibc)
+     FreeBSD 2.2.8
+
+     v2.5
+     ----
+     
+     Linux (glibc)
+     
+     v2.6
+     ----
+     
+     Linux (glibc)
+     FreeBSD (2.2.8+)
+     Solaris
+
+V.   CREDITS
+     -------
+
+     Sean Mcnulty <lazy@ccf.rutgers.edu>
+        * Fixed a bug which caused the decode function to fail.
+
+     Ulf Betlehem <flu@iki.fi>
+        * multiple databases
+        * LOCATE_PATH environment variable support
+        * -o, --output options
+
+     Jim Dougharty  <james.dougharty@sabre.com>
+        * Recursive directory walk will not exit if a directory
+        * cannot be read.  May happen on some NFS directories.
+
+     Glen Maynard <glennm@mediaone.net>
+        * Multiple search strings are now possible
+        * Uses access() instead of opendir() to see if a directory
+          is readable.
+
+     R.G. Wood <rgwood@debain.org>
+        * Debian Package Maintainer.
+        
+     Alexander V. Lukyanov" <lav@long.yar.ru>
+        * Fixed some performance issues that I over looked.  Thanx
+          To Alex, slocate -u is much faster!
+          
+     Matt Heckaman <matt@MLINK.NET>
+        * Created a patch to make Secure Locate work with FreeBSD.
+
+     Luca Berra <bluca@vodka.it>
+        * Added case insensitive option and optimized code to make
+          searching faster.
+
+     Hans-Juergen Godau <godau@wi-inf.uni-essen.de>
+        * Fixed a segfault when searching through more than one
+          database.
+	  
+     Francis Liu <fxl@enstor.com.au>
+        * Solaris Patch
+
+     Wanderlei Antonio Cavassin <cavassin@conectiva.com.br>
+        * Fixed a segfault with invalid regex
+
+VI.  AUTHOR AND BUGS
+     ---------------
+
+     Author: Kevin Lindsay
+
+     Bug Reports: klindsay@mkintraweb.com
+
+     FTP:   ftp://ftp.geekreview.org/slocate/
+     HTTP:  http://www.geekreview.org/slocate/
